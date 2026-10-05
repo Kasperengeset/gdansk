@@ -1,7 +1,8 @@
 import { mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
+import type { PoolClient } from "pg";
 
-// Minimal felles grensesnitt over postgres.js (produksjon) og PGlite (lokalt/tester).
+// Minimal felles grensesnitt over node-postgres (produksjon) og PGlite (lokalt/tester).
 export interface Db {
   query<T = Record<string, unknown>>(text: string, params?: unknown[]): Promise<T[]>;
   tx<T>(fn: (db: Db) => Promise<T>): Promise<T>;
@@ -58,22 +59,42 @@ export async function createMemoryDb(): Promise<Db> {
 async function createDb(): Promise<Db> {
   const url = process.env.DATABASE_URL;
   if (url) {
-    const { default: postgres } = await import("postgres");
-    // Supabase sin transaksjons-pooler krever prepare: false, og henger hvis flere spørringer
-    // sendes i kø på samme tilkobling (pipelining) – max_pipeline: 0 slår det av.
-    // idle_timeout lukker ubrukte tilkoblinger, så frosne serverless-instanser ikke sitter med døde.
-    // (max_pipeline støttes av postgres.js, men mangler i typedefinisjonene.)
-    const options = { prepare: false, max: 5, max_pipeline: 0, idle_timeout: 20, connect_timeout: 10 };
-    const sql = postgres(url, options as Parameters<typeof postgres>[1]);
-    const wrap = (s: Pick<typeof sql, "unsafe">): Db => ({
-      async query<T>(text: string, params: unknown[] = []) {
-        return (await s.unsafe(text, params as never[])) as unknown as T[];
-      },
-      async tx<T>(fn: (db: Db) => Promise<T>) {
-        return (await sql.begin((t) => fn(wrap(t)))) as T;
-      },
+    const { Pool } = await import("pg");
+    // node-postgres sender aldri mer enn én spørring om gangen per tilkobling. Det krever
+    // Supabase sin transaksjons-pooler, som henger hvis spørringer legges i kø (pipelining).
+    // idleTimeoutMillis lukker ubrukte tilkoblinger, så frosne serverless-instanser ikke sitter med døde.
+    const pool = new Pool({
+      connectionString: url,
+      max: 5,
+      idleTimeoutMillis: 20_000,
+      connectionTimeoutMillis: 10_000,
+      ssl: { rejectUnauthorized: false },
     });
-    return wrap(sql);
+    pool.on("error", (err) => console.error("Feil i ledig databasetilkobling:", err.message));
+
+    const run = async <T>(client: Pick<PoolClient, "query">, text: string, params: unknown[] = []) =>
+      (await client.query(text, params)).rows as T[];
+    const noNested = () => {
+      throw new Error("Nestede transaksjoner støttes ikke");
+    };
+
+    return {
+      query: (text, params) => run(pool, text, params),
+      async tx(fn) {
+        const client = await pool.connect();
+        try {
+          await client.query("begin");
+          const result = await fn({ query: (text, params) => run(client, text, params), tx: noNested });
+          await client.query("commit");
+          return result;
+        } catch (err) {
+          await client.query("rollback").catch(() => {});
+          throw err;
+        } finally {
+          client.release();
+        }
+      },
+    };
   }
 
   if (process.env.NODE_ENV === "production") {

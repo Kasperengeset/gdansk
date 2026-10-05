@@ -62,7 +62,7 @@ npm run dev
 ## Teknisk
 
 - **Rammeverk:** Next.js 16 (App Router), TypeScript og Tailwind.
-- **Database:** Postgres via `postgres`. Lokalt og i testene brukes PGlite. Bildene lagres i databasen.
+- **Database:** Postgres via `pg` (node-postgres). Lokalt og i testene brukes PGlite. Bildene lagres i databasen.
 - **Viktige filer:**
   - `lib/game.ts`: spillogikken, altså tilstand, innsjekk, bevis, nødkonvolutt og admin. Oppgavetekst, nødtekst og koordinater sendes aldri til lagene før de er låst opp.
   - `lib/cipher.ts`: chiffer over det norske alfabetet (A–Å, 29 bokstaver).
