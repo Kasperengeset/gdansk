@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getDb } from "@/lib/db";
+import { getRequestDb } from "@/lib/request-db";
 import { ago } from "@/lib/format";
 import { getOverview, getSettings } from "@/lib/game";
 import { formatDuration, formatMinutes } from "@/lib/scoring";
@@ -9,7 +9,7 @@ import { ActionButton, ActionForm, AutoRefresh } from "./controls";
 const STATUS = { clue: "leter", arrived: "på posten", done: "ferdig" } as const;
 
 export default async function AdminOverview() {
-  const db = await getDb();
+  const db = await getRequestDb();
   const [{ teams, totalPosts }, settings, [{ missing }]] = await Promise.all([
     getOverview(db),
     getSettings(db),

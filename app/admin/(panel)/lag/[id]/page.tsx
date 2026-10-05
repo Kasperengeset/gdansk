@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getDb } from "@/lib/db";
+import { getRequestDb } from "@/lib/request-db";
 import { ago, clock, osmLink } from "@/lib/format";
 import { COSTUME_THEMES, getActivePosts, type ProgressRow, type TeamRow } from "@/lib/game";
 import { computeScore, formatDuration, formatMinutes } from "@/lib/scoring";
@@ -36,7 +36,7 @@ const STATUS: Record<ProgressRow["status"], string> = { clue: "Leter", arrived: 
 export default async function TeamPage({ params }: PageProps<"/admin/lag/[id]">) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
-  const db = await getDb();
+  const db = await getRequestDb();
   const [team] = await db.query<TeamRow>("select * from teams where id = $1", [id]);
   if (!team) notFound();
 

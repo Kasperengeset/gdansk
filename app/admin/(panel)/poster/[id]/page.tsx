@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getDb } from "@/lib/db";
+import { getRequestDb } from "@/lib/request-db";
 import type { PostRow } from "@/lib/game";
 import { deletePostAction, savePostAction } from "../../../actions";
 import { PostForm } from "../PostForm";
@@ -11,7 +11,7 @@ export default async function EditPostPage({ params }: PageProps<"/admin/poster/
   const isNew = id === "ny";
   if (!isNew && !/^[0-9a-f-]{36}$/i.test(id)) notFound();
 
-  const db = await getDb();
+  const db = await getRequestDb();
   const posts = await db.query<PostRow>("select * from posts order by position, id");
   const existing = posts.find((p) => p.id === id);
   if (!isNew && !existing) notFound();

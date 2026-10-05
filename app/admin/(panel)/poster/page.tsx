@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { CIPHER_TYPES, isCipherType } from "@/lib/cipher";
-import { getDb } from "@/lib/db";
+import { getRequestDb } from "@/lib/request-db";
 import { PROOF_TYPES, type PostRow } from "@/lib/game";
 import { movePostAction, toggleActiveAction } from "../../actions";
 import { ActionButton } from "../controls";
 import { PostsMap } from "./maps";
 
 export default async function PostsPage() {
-  const db = await getDb();
+  const db = await getRequestDb();
   const posts = await db.query<PostRow>("select * from posts order by position, id");
   let n = 0;
   const numbered = posts.map((p) => ({ post: p, number: p.active ? ++n : null }));

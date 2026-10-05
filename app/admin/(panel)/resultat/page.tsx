@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { getDb } from "@/lib/db";
+import { getRequestDb } from "@/lib/request-db";
 import { getOverview, rankTeams } from "@/lib/game";
 import { formatDuration, formatMinutes } from "@/lib/scoring";
 import { AutoRefresh } from "../controls";
 
 export default async function ResultsPage() {
-  const { teams, totalPosts } = await getOverview(await getDb());
+  const { teams, totalPosts } = await getOverview(await getRequestDb());
   const ranked = rankTeams(teams.filter((t) => t.team.started_at));
 
   return (
