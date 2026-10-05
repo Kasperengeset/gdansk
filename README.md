@@ -33,7 +33,7 @@ npm run dev
 
 ### 1. Database (Supabase)
 
-1. Opprett et prosjekt på [supabase.com](https://supabase.com) og velg regionen **Central EU (Frankfurt)**.
+1. Opprett et prosjekt på [supabase.com](https://supabase.com) og velg en region i Europa. Vår database ligger i **West EU (Ireland)**.
 2. Trykk **Connect** og kopier tilkoblingsstrengen under **Transaction pooler** (port 6543). Bytt ut `[YOUR-PASSWORD]` med databasepassordet.
 3. Opprett tabellene og legg inn postene fra PDF-en:
    ```bash
@@ -48,7 +48,7 @@ npm run dev
    - `DATABASE_URL`: tilkoblingsstrengen fra Supabase
    - `ADMIN_PASSWORD`: et passord du velger
    - `SESSION_SECRET`: en lang tilfeldig streng, for eksempel fra `openssl rand -base64 32`
-3. Trykk **Deploy**. `vercel.json` kjører serverfunksjonene i Frankfurt, nær databasen.
+3. Trykk **Deploy**. `vercel.json` kjører serverfunksjonene i Dublin (`dub1`), nær databasen i Irland. Bytter du Supabase-region, bør du endre denne også.
 
 ## Før løpet
 
