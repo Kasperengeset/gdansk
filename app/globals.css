@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+/* Fargene fra PDF-en: rødt, papirbeige og mørk tekst. Bare lyst tema – appen brukes ute i dagslys. */
+:root {
+  color-scheme: light;
+  --background: #faf8f5;
+  --foreground: #222222;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-brand: #b3261e;
+  --color-brand-dark: #8c1d17;
+  --color-paper: #f2ede6;
+  --color-line: #e2dad0;
+  --color-muted: #6b6560;
+  --color-ok: #2e7d32;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-line bg-white p-4 shadow-sm;
+  }
+  .paper {
+    @apply rounded-xl border-l-4 border-brand bg-paper p-4;
+  }
+  .label {
+    @apply mb-1 block text-sm font-semibold;
+  }
+  .input {
+    @apply w-full rounded-lg border border-line bg-white px-3 py-2 text-base outline-none focus:border-brand focus:ring-2 focus:ring-brand/20;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-white px-4 py-2 font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply border-brand bg-brand text-white hover:bg-brand-dark;
+  }
+  .btn-big {
+    @apply w-full py-4 text-lg;
+  }
+  .btn-small {
+    @apply px-3 py-1 text-sm;
+  }
+  .eyebrow {
+    @apply text-xs font-bold tracking-widest text-brand uppercase;
+  }
+  .error {
+    @apply rounded-lg bg-red-50 px-3 py-2 text-sm text-brand-dark;
+  }
+}
