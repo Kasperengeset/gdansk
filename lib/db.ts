@@ -59,8 +59,12 @@ async function createDb(): Promise<Db> {
   const url = process.env.DATABASE_URL;
   if (url) {
     const { default: postgres } = await import("postgres");
-    // prepare: false kreves av Supabase sin transaksjons-pooler.
-    const sql = postgres(url, { prepare: false, max: 5 });
+    // Supabase sin transaksjons-pooler krever prepare: false, og henger hvis flere spørringer
+    // sendes i kø på samme tilkobling (pipelining) – max_pipeline: 0 slår det av.
+    // idle_timeout lukker ubrukte tilkoblinger, så frosne serverless-instanser ikke sitter med døde.
+    // (max_pipeline støttes av postgres.js, men mangler i typedefinisjonene.)
+    const options = { prepare: false, max: 5, max_pipeline: 0, idle_timeout: 20, connect_timeout: 10 };
+    const sql = postgres(url, options as Parameters<typeof postgres>[1]);
     const wrap = (s: Pick<typeof sql, "unsafe">): Db => ({
       async query<T>(text: string, params: unknown[] = []) {
         return (await s.unsafe(text, params as never[])) as unknown as T[];
